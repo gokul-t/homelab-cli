@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+readonly PI_HOST="homelab-pi"
+readonly DESKTOP_HOST="homelab"
+readonly WAKE_CMD="/usr/local/bin/homelab-wake"
+
+log() {
+    printf '[homelab] %s\n' "$*"
+}
+
+error() {
+  printf '[homelab] ERROR %s\n' "$*" >&2
+  exit 1
+}
+
+ssh_check() {
+  ssh -o BatchMode=yes -o ConnectTimeout=5 "$1" true > /dev/null 2>&1
+}
+
+usage() {
+  cat <<EOF
+Usage: homelab <command>
+
+Commands:
+  wake  Wake Debian via Raspberry pi
+  status Check Pi and Debian reachability
+  ssh SSH into Debian
+  shutdown Shut down Debian safely
+  help Show this help
+EOF
+}
+
+main() {
+  case "${1:-help}" in
+    wake) wake ;;
+    status) status ;;
+    ssh) connect ;;
+    shutdown) shutdown_server ;;
+    help|-h|--help) usage ;;
+    *) error "Unknown command: $1" ;;
+  esac
+}
+
+main "$@"
