@@ -18,16 +18,78 @@ ssh_check() {
   ssh -o BatchMode=yes -o ConnectTimeout=5 "$1" true > /dev/null 2>&1
 }
 
+status() {
+    log "Checking homelab status..."
+    if ssh_check "$PI_HOST"; then
+        log "$PI_HOST [ONLINE]"
+    else
+        log "$PI_HOST [OFFLINE]"
+    fi
+
+    if ssh_check "$DESKTOP_HOST"; then
+        log "$DESKTOP_HOST [ONLINE]"
+    else
+        log "$DESKTOP_HOST [OFFLINE]"
+    fi
+}
+
+wake() {
+    if ssh_check "$DESKTOP_HOST"; then
+        log "$DESKTOP_HOST is already [ONLINE]"
+        return 0
+    fi
+    log "Waking up $DESKTOP_HOST via $PI_HOST..."
+    if ssh_check "$PI_HOST"; then
+        if ssh -o BatchMode=yes -o ConnectTimeout=10 "$PI_HOST" "$WAKE_CMD"; then
+            log "Wake command sent successfully."
+        else
+            error "Failed to execute wake command on $PI_HOST."
+        fi
+    else
+        error "Could not connect to $PI_HOST. Is the Pi online?"
+    fi
+
+    log "Waiting for $DESKTOP_HOST to become ready..."
+    local attempt=1
+    local max_attempts=20
+    while ! ssh_check "$DESKTOP_HOST"; do
+        if [ "$attempt" -ge "$max_attempts" ]; then
+            log "Timeout waiting for $DESKTOP_HOST to wake up."
+            return 1
+        fi
+        printf "."
+        sleep 5
+        ((attempt++))
+    done
+    printf "\n"
+    log "$DESKTOP_HOST is now [ONLINE]!"
+}
+
+connect() {
+    log "Connecting to $DESKTOP_HOST..."
+    exec ssh "$DESKTOP_HOST"
+}
+
+shutdown_server() {
+    log "Shutting down $DESKTOP_HOST..."
+    if ssh_check "$DESKTOP_HOST"; then
+        ssh -t "$DESKTOP_HOST" "sudo systemctl poweroff"
+        log "Shutdown command sent."
+    else
+        error "Could not connect to $DESKTOP_HOST to shut it down."
+    fi
+}
+
 usage() {
   cat <<EOF
 Usage: homelab <command>
 
 Commands:
-  wake  Wake Debian via Raspberry pi
-  status Check Pi and Debian reachability
-  ssh SSH into Debian
-  shutdown Shut down Debian safely
-  help Show this help
+  wake      Wake Debian via Raspberry pi
+  status    Check Pi and Debian reachability
+  ssh       SSH into Debian
+  shutdown  Shut down Debian safely
+  help      Show this help
 EOF
 }
 
