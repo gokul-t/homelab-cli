@@ -17,14 +17,9 @@ A lightweight CLI to remotely wake, monitor, access, and manage a self-hosted Li
    cd homelab-cli
    ```
 
-2. Make the script executable:
+2. Install the script to your local bin:
    ```bash
-   chmod +x homelab
-   ```
-
-3. (Optional) Link it to your local bin for global access:
-   ```bash
-   sudo ln -s $(pwd)/homelab /usr/local/bin/homelab
+   install -m 755 homelab ~/.local/bin/homelab
    ```
 
 ## Usage
