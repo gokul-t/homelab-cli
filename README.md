@@ -22,6 +22,13 @@ A lightweight CLI to remotely wake, monitor, access, and manage a self-hosted Li
    install -m 755 homelab ~/.local/bin/homelab
    ```
 
+   Or install the latest public release binary directly:
+   ```bash
+   curl -sLo homelab https://github.com/gokul-t/homelab-cli/releases/latest/download/homelab
+   chmod +x homelab
+   install -m 755 homelab ~/.local/bin/homelab
+   ```
+
 ## Usage
 
 ```bash
