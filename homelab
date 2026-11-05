@@ -54,6 +54,7 @@ wake() {
     local max_attempts=20
     while ! ssh_check "$DESKTOP_HOST"; do
         if [ "$attempt" -ge "$max_attempts" ]; then
+            printf "\n"
             log "Timeout waiting for $DESKTOP_HOST to wake up."
             return 1
         fi
